@@ -3,18 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { OpenAI } from '@multimodal/model-provider';
-import { Flow, Node, SharedStore, AgentNode } from '../src';
+import { Flow, Node, SharedStore, AgentNode, FlowBasedAgent, MockOpenAI as OpenAI } from '../src';
 
 // 创建一个简单的 Agent 流程示例
 
 async function main() {
   console.log('初始化简单 Agent 流程示例...');
 
-  // 创建 LLM 客户端
+  // 创建模拟 LLM 客户端
   const client = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY || '',
-    baseURL: process.env.OPENAI_API_BASE || 'https://api.openai.com/v1',
+    apiKey: 'mock-api-key', // 模拟API密钥
+    baseURL: 'https://api.openai.com/v1', // 默认基础URL
   });
 
   // 系统提示
@@ -64,10 +63,10 @@ async function main() {
   flow.connect('agent', 'response');
 
   // 执行流程
-  console.log('🧑 用户: ' + process.argv[2] || 'Hello! How are you?');
+  console.log('🧑 用户: Hello! How are you?');
   await flow.execute({
     input: {
-      query: process.argv[2] || 'Hello! How are you?',
+      query: 'Hello! How are you?',
     },
     store,
   });
@@ -77,5 +76,4 @@ async function main() {
 
 main().catch((err) => {
   console.error('错误:', err);
-  process.exit(1);
 });

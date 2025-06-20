@@ -6,11 +6,14 @@
 // 导出核心组件
 export * from './core';
 
-// 导出与代理相关的组件
-export * from './agent';
-
 // 导出专门节点
 export * from './nodes';
+
+// 导出代理实现
+export * from './agents';
+
+// 导出与代理相关的组件
+export * from './agents';
 
 // 导出工具和辅助函数
 export * from './utils';

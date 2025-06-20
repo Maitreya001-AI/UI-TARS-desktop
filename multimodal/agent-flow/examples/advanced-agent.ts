@@ -3,21 +3,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { OpenAI } from '@multimodal/model-provider';
 import {
   Flow,
   Node,
   SharedStore,
   AgentNode,
-  MemoryNode,
   RouterNode,
+  MemoryNode,
   OutputParserNode,
   FlowLogger,
+  LogLevel,
   ObservableFlow,
   ConversationManager,
   ContextManager,
   PromptBuilder,
   ErrorRecoveryUtils,
+  FlowBasedAgent,
+  MockOpenAI as OpenAI
 } from '../src';
 
 /**
@@ -37,14 +39,14 @@ async function main() {
 
   // 配置日志记录器
   const logger = FlowLogger.getInstance();
-  logger.setLevel('info');
+  logger.setLevel(LogLevel.INFO);
 
   logger.info('开始设置高级代理');
 
-  // 创建 LLM 客户端
+  // 创建模拟 LLM 客户端
   const client = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY || '',
-    baseURL: process.env.OPENAI_API_BASE || 'https://api.openai.com/v1',
+    apiKey: 'mock-api-key', // 模拟API密钥
+    baseURL: 'https://api.openai.com/v1', // 默认基础URL
   });
 
   // 创建共享存储
@@ -71,7 +73,7 @@ async function main() {
   const flow = new Flow();
 
   // 创建输入处理节点
-  const inputNode = new Node('input', async (input, store) => {
+  const inputNode = new Node('input', function(input, store) {
     logger.info('处理用户输入', 'input', undefined, input);
 
     // 添加到会话历史
@@ -94,7 +96,7 @@ async function main() {
   const memoryNode = new MemoryNode('memory', 'memory_store');
 
   // 创建上下文准备节点
-  const contextNode = new Node('context_prep', async (input, store) => {
+  const contextNode = new Node('context_prep', function(input, store) {
     logger.info('准备上下文', 'context_prep');
 
     // 获取历史消息并设置提示
@@ -125,17 +127,23 @@ async function main() {
   const routerNode = new RouterNode('router')
     .addRoute(
       'structured_output',
-      (input) =>
-        input.query.includes('结构化') ||
-        input.query.includes('JSON') ||
-        input.query.includes('格式化'),
+      function(input) {
+        return (
+          input.query.includes('结构化') ||
+          input.query.includes('JSON') ||
+          input.query.includes('格式化')
+        );
+      }
     )
     .addRoute(
       'memory_operation',
-      (input) =>
-        input.query.includes('记住') ||
-        input.query.includes('回忆') ||
-        input.query.includes('之前'),
+      function(input) {
+        return (
+          input.query.includes('记住') ||
+          input.query.includes('回忆') ||
+          input.query.includes('之前')
+        );
+      }
     )
     .setDefaultRoute('general');
 
@@ -147,13 +155,13 @@ async function main() {
   const outputParserNode = new OutputParserNode('output_parser');
 
   // 创建记忆操作节点
-  const memoryOpNode = new Node('memory_op', async (input, store) => {
+  const memoryOpNode = new Node('memory_op', function(input, store) {
     logger.info('执行记忆操作', 'memory_op');
 
-    if (input.content.toLowerCase().includes('记住')) {
+    if (input.content && typeof input.content === 'string' && input.content.toLowerCase().indexOf('记住') !== -1) {
       // 提取需要记住的内容
-      const contentMatch = input.content.match(/记住(.+)/) || [];
-      const itemToRemember = contentMatch[1]?.trim();
+      var contentMatch = input.content.match(/记住(.+)/) || [];
+      var itemToRemember = contentMatch[1] ? contentMatch[1].trim() : undefined;
 
       if (itemToRemember) {
         return {
@@ -162,12 +170,13 @@ async function main() {
             content: itemToRemember,
             type: 'memory',
           },
-          response: `我已经记住了: ${itemToRemember}`,
+          response: '我已经记住了: ' + itemToRemember,
         };
       }
     } else if (
-      input.content.toLowerCase().includes('回忆') ||
-      input.content.toLowerCase().includes('之前')
+      input.content && typeof input.content === 'string' &&
+      (input.content.toLowerCase().indexOf('回忆') !== -1 ||
+        input.content.toLowerCase().indexOf('之前') !== -1)
     ) {
       // 检索记忆
       return {
@@ -181,10 +190,10 @@ async function main() {
   });
 
   // 创建响应格式化节点
-  const responseFormatterNode = new Node('response_formatter', async (input, store) => {
+  const responseFormatterNode = new Node('response_formatter', function(input, store) {
     logger.info('格式化响应', 'response_formatter');
 
-    let formattedResponse = '';
+    var formattedResponse = '';
 
     if (input.parsed) {
       // 结构化输出
@@ -207,12 +216,12 @@ async function main() {
 
     return {
       ...input,
-      formattedResponse,
+      formattedResponse: formattedResponse,
     };
   });
 
   // 创建输出节点
-  const outputNode = new Node('output', async (input, store) => {
+  const outputNode = new Node('output', function(input, store) {
     logger.info('生成最终输出', 'output');
 
     console.log('\n🤖 助手: ' + input.formattedResponse);
@@ -244,20 +253,20 @@ async function main() {
 
   // 结构化输出路径
   flow.connect('agent', 'output_parser', {
-    condition: (data) => data.route === 'structured_output',
+    condition: function(data) { return data.route === 'structured_output'; },
   });
   flow.connect('output_parser', 'response_formatter');
 
   // 记忆操作路径
   flow.connect('agent', 'memory_op', {
-    condition: (data) => data.route === 'memory_operation',
+    condition: function(data) { return data.route === 'memory_operation'; },
   });
   flow.connect('memory_op', 'memory');
   flow.connect('memory', 'response_formatter');
 
   // 一般响应路径
   flow.connect('agent', 'response_formatter', {
-    condition: (data) => data.route === 'general',
+    condition: function(data) { return data.route === 'general'; },
   });
 
   // 最终输出
@@ -267,46 +276,44 @@ async function main() {
   const observableFlow = new ObservableFlow(flow, 'advanced_agent');
 
   // 添加事件监听
-  observableFlow.on('flow:start', () => {
+  observableFlow.on('flow:start', function() {
     console.log('🚀 代理流程开始执行');
   });
 
-  observableFlow.on('flow:complete', (_, data) => {
-    console.log(`✅ 代理流程完成，耗时: ${data.duration}ms\n`);
+  observableFlow.on('flow:complete', function(_, data) {
+    console.log('✅ 代理流程完成，耗时: ' + data.duration + 'ms\n');
   });
 
   // 设置会话 ID
-  store.set('sessionId', `session_${Date.now()}`);
+  store.set('sessionId', 'session_' + Date.now());
 
   // 执行流程
-  const query =
-    process.argv[2] || '你能告诉我什么是机器学习，并以JSON格式列出三个主要的机器学习方法吗？';
+  var query = '你能告诉我什么是机器学习，并以JSON格式列出三个主要的机器学习方法吗？';
   console.log('🧑 用户: ' + query);
 
-  await observableFlow.execute({
-    input: { query },
-    store,
-  });
-
-  // 再次执行，测试记忆功能
-  if (!process.argv[2]) {
+  observableFlow.execute({
+    input: { query: query },
+    store: store,
+  }).then(function() {
+    // 再次执行，测试记忆功能
     console.log('\n🧑 用户: 能帮我记住明天下午3点要开会吗？');
 
-    await observableFlow.execute({
+    return observableFlow.execute({
       input: { query: '能帮我记住明天下午3点要开会吗？' },
-      store,
+      store: store,
     });
-
+  }).then(function() {
     console.log('\n🧑 用户: 你能告诉我你之前记住的事情吗？');
 
-    await observableFlow.execute({
+    return observableFlow.execute({
       input: { query: '你能告诉我你之前记住的事情吗？' },
-      store,
+      store: store,
     });
-  }
+  }).catch(function(err) {
+    console.error('错误:', err);
+  });
 }
 
 main().catch((err) => {
   console.error('错误:', err);
-  process.exit(1);
 });

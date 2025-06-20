@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { OpenAI } from '@multimodal/model-provider';
-import { Flow, Node, SharedStore, AgentNode, ToolNode } from '../src';
+import { Flow, Node, SharedStore, AgentNode, ToolNode, FlowBasedAgent, MockOpenAI as OpenAI } from '../src';
 
 // 创建一个带有并行工具执行的 Agent 流程示例
 
