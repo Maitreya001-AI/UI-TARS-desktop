@@ -1,0 +1,40 @@
+{
+  "name": "@multimodal/agent-flow",
+  "version": "0.1.0",
+  "description": "一个基于 Pocket Flow 图形化计算模型的轻量级 Agent 框架",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "dev": "tsc --watch",
+    "lint": "eslint src/**/*.ts",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "agent",
+    "flow",
+    "graph",
+    "llm"
+  ],
+  "author": "UI-TARS Team",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@multimodal/agent-interface": "workspace:*",
+    "@multimodal/model-provider": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0",
+    "eslint": "^8.0.0",
+    "@types/node": "^20.0.0"
+  },
+  "peerDependencies": {
+    "@multimodal/agent-interface": "workspace:*",
+    "@multimodal/model-provider": "workspace:*"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ]
+}
