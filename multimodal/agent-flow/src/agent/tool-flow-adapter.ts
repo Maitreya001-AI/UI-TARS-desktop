@@ -8,78 +8,12 @@ import {
   Tool,
   ToolCallResult,
   AgentEventStream,
-} from '@multimodal/agent-interface';
-import { Node } from './node';
-import { Flow } from './flow';
-import { SharedStore } from './shared-store';
-
-/**
- * ToolNode - 工具执行节点
- *
- * 该节点用于执行单个工具调用，并返回执行结果。
- */
-export class ToolNode extends Node {
-  /**
-   * 构造函数
-   *
-   * @param id 节点 ID
-   * @param toolName 工具名称
-   * @param tool 工具定义
-   * @param executeTool 工具执行函数
-   */
-  constructor(
-    id: string,
-    private toolName: string,
-    private tool: Tool,
-    private executeTool: (name: string, args: any, toolId?: string) => Promise<any>,
-  ) {
-    super(id, async (input, store) => {
-      const args = input.args || {};
-      const toolId = input.toolId;
-
-      // 执行工具
-      const result = await this.executeTool(this.toolName, args, toolId);
-
-      // 存储结果
-      store.set(`tool:${this.toolName}:result`, result);
-
-      return {
-        toolName: this.toolName,
-        toolId: toolId,
-        result,
-      };
-    });
-  }
-}
-
-/**
- * EventNode - 事件发送节点
- *
- * 该节点用于向事件流发送事件。
- */
-export class EventNode extends Node {
-  /**
-   * 构造函数
-   *
-   * @param id 节点 ID
-   * @param eventType 事件类型
-   * @param eventStream 事件流
-   */
-  constructor(
-    id: string,
-    private eventType: string,
-    private eventStream: AgentEventStream.Processor,
-  ) {
-    super(id, async (input, store) => {
-      // 发送事件
-      const event = this.eventStream.createEvent(this.eventType as any, input);
-
-      this.eventStream.sendEvent(event);
-
-      return input;
-    });
-  }
-}
+} from '../interfaces';
+import { Node } from '../core/node';
+import { Flow } from '../core/flow';
+import { SharedStore } from '../core/shared-store';
+import { EventNode } from '../nodes/event-node';
+import { ToolNode } from '../nodes/tool-node';
 
 /**
  * ToolFlowAdapter - 工具流适配器
