@@ -1,8 +1,3 @@
-/*
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import {
   Flow,
   Node,
@@ -19,7 +14,7 @@ import {
   PromptBuilder,
   ErrorRecoveryUtils,
   FlowBasedAgent,
-  MockOpenAI as OpenAI
+  MockOpenAI as OpenAI,
 } from '../src';
 
 /**
@@ -73,7 +68,7 @@ async function main() {
   const flow = new Flow();
 
   // 创建输入处理节点
-  const inputNode = new Node('input', function(input, store) {
+  const inputNode = new Node('input', function (input, store) {
     logger.info('处理用户输入', 'input', undefined, input);
 
     // 添加到会话历史
@@ -96,7 +91,7 @@ async function main() {
   const memoryNode = new MemoryNode('memory', 'memory_store');
 
   // 创建上下文准备节点
-  const contextNode = new Node('context_prep', function(input, store) {
+  const contextNode = new Node('context_prep', function (input, store) {
     logger.info('准备上下文', 'context_prep');
 
     // 获取历史消息并设置提示
@@ -125,26 +120,18 @@ async function main() {
 
   // 创建路由节点
   const routerNode = new RouterNode('router')
-    .addRoute(
-      'structured_output',
-      function(input) {
-        return (
-          input.query.includes('结构化') ||
-          input.query.includes('JSON') ||
-          input.query.includes('格式化')
-        );
-      }
-    )
-    .addRoute(
-      'memory_operation',
-      function(input) {
-        return (
-          input.query.includes('记住') ||
-          input.query.includes('回忆') ||
-          input.query.includes('之前')
-        );
-      }
-    )
+    .addRoute('structured_output', function (input) {
+      return (
+        input.query.includes('结构化') ||
+        input.query.includes('JSON') ||
+        input.query.includes('格式化')
+      );
+    })
+    .addRoute('memory_operation', function (input) {
+      return (
+        input.query.includes('记住') || input.query.includes('回忆') || input.query.includes('之前')
+      );
+    })
     .setDefaultRoute('general');
 
   // 创建代理节点 (使用错误恢复包装)
@@ -155,13 +142,17 @@ async function main() {
   const outputParserNode = new OutputParserNode('output_parser');
 
   // 创建记忆操作节点
-  const memoryOpNode = new Node('memory_op', function(input, store) {
+  const memoryOpNode = new Node('memory_op', function (input, store) {
     logger.info('执行记忆操作', 'memory_op');
 
-    if (input.content && typeof input.content === 'string' && input.content.toLowerCase().indexOf('记住') !== -1) {
+    if (
+      input.content &&
+      typeof input.content === 'string' &&
+      input.content.toLowerCase().indexOf('记住') !== -1
+    ) {
       // 提取需要记住的内容
-      var contentMatch = input.content.match(/记住(.+)/) || [];
-      var itemToRemember = contentMatch[1] ? contentMatch[1].trim() : undefined;
+      const contentMatch = input.content.match(/记住(.+)/) || [];
+      const itemToRemember = contentMatch[1] ? contentMatch[1].trim() : undefined;
 
       if (itemToRemember) {
         return {
@@ -174,7 +165,8 @@ async function main() {
         };
       }
     } else if (
-      input.content && typeof input.content === 'string' &&
+      input.content &&
+      typeof input.content === 'string' &&
       (input.content.toLowerCase().indexOf('回忆') !== -1 ||
         input.content.toLowerCase().indexOf('之前') !== -1)
     ) {
@@ -190,10 +182,10 @@ async function main() {
   });
 
   // 创建响应格式化节点
-  const responseFormatterNode = new Node('response_formatter', function(input, store) {
+  const responseFormatterNode = new Node('response_formatter', function (input, store) {
     logger.info('格式化响应', 'response_formatter');
 
-    var formattedResponse = '';
+    let formattedResponse = '';
 
     if (input.parsed) {
       // 结构化输出
@@ -221,7 +213,7 @@ async function main() {
   });
 
   // 创建输出节点
-  const outputNode = new Node('output', function(input, store) {
+  const outputNode = new Node('output', function (input, store) {
     logger.info('生成最终输出', 'output');
 
     console.log('\n🤖 助手: ' + input.formattedResponse);
@@ -253,20 +245,26 @@ async function main() {
 
   // 结构化输出路径
   flow.connect('agent', 'output_parser', {
-    condition: function(data) { return data.route === 'structured_output'; },
+    condition: function (data) {
+      return data.route === 'structured_output';
+    },
   });
   flow.connect('output_parser', 'response_formatter');
 
   // 记忆操作路径
   flow.connect('agent', 'memory_op', {
-    condition: function(data) { return data.route === 'memory_operation'; },
+    condition: function (data) {
+      return data.route === 'memory_operation';
+    },
   });
   flow.connect('memory_op', 'memory');
   flow.connect('memory', 'response_formatter');
 
   // 一般响应路径
   flow.connect('agent', 'response_formatter', {
-    condition: function(data) { return data.route === 'general'; },
+    condition: function (data) {
+      return data.route === 'general';
+    },
   });
 
   // 最终输出
@@ -276,11 +274,11 @@ async function main() {
   const observableFlow = new ObservableFlow(flow, 'advanced_agent');
 
   // 添加事件监听
-  observableFlow.on('flow:start', function() {
+  observableFlow.on('flow:start', function () {
     console.log('🚀 代理流程开始执行');
   });
 
-  observableFlow.on('flow:complete', function(_, data) {
+  observableFlow.on('flow:complete', function (_, data) {
     console.log('✅ 代理流程完成，耗时: ' + data.duration + 'ms\n');
   });
 
@@ -288,30 +286,34 @@ async function main() {
   store.set('sessionId', 'session_' + Date.now());
 
   // 执行流程
-  var query = '你能告诉我什么是机器学习，并以JSON格式列出三个主要的机器学习方法吗？';
+  const query = '你能告诉我什么是机器学习，并以JSON格式列出三个主要的机器学习方法吗？';
   console.log('🧑 用户: ' + query);
 
-  observableFlow.execute({
-    input: { query: query },
-    store: store,
-  }).then(function() {
-    // 再次执行，测试记忆功能
-    console.log('\n🧑 用户: 能帮我记住明天下午3点要开会吗？');
-
-    return observableFlow.execute({
-      input: { query: '能帮我记住明天下午3点要开会吗？' },
+  observableFlow
+    .execute({
+      input: { query: query },
       store: store,
-    });
-  }).then(function() {
-    console.log('\n🧑 用户: 你能告诉我你之前记住的事情吗？');
+    })
+    .then(function () {
+      // 再次执行，测试记忆功能
+      console.log('\n🧑 用户: 能帮我记住明天下午3点要开会吗？');
 
-    return observableFlow.execute({
-      input: { query: '你能告诉我你之前记住的事情吗？' },
-      store: store,
+      return observableFlow.execute({
+        input: { query: '能帮我记住明天下午3点要开会吗？' },
+        store: store,
+      });
+    })
+    .then(function () {
+      console.log('\n🧑 用户: 你能告诉我你之前记住的事情吗？');
+
+      return observableFlow.execute({
+        input: { query: '你能告诉我你之前记住的事情吗？' },
+        store: store,
+      });
+    })
+    .catch(function (err) {
+      console.error('错误:', err);
     });
-  }).catch(function(err) {
-    console.error('错误:', err);
-  });
 }
 
 main().catch((err) => {

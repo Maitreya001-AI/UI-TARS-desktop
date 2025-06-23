@@ -1,15 +1,4 @@
-/*
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import { OpenAI } from '@multimodal/model-provider';
-import { 
-  FlowBasedAgent, 
-  SharedStore,
-  AgentEventStream,
-  Tool
-} from '../src';
+import { FlowBasedAgent, SharedStore, AgentEventStream, Tool, MockOpenAI as OpenAI } from '../src';
 
 // 创建一个使用并行工具能力的代理示例
 
@@ -48,10 +37,10 @@ async function getWeather(city: string): Promise<string> {
 
 // 实现一个简单的事件流处理器
 class SimpleEventStream implements AgentEventStream.Processor {
-  createEvent(type: AgentEventStream.EventTypes, payload: any): AgentEventStream.Event {
+  createEvent(type: AgentEventStream.EventTypes, payload: unknown): AgentEventStream.Event {
     return { type, payload };
   }
-  
+
   sendEvent(event: AgentEventStream.Event): void {
     console.log(`📣 事件: ${event.type}`, event.payload);
   }
@@ -60,12 +49,12 @@ class SimpleEventStream implements AgentEventStream.Processor {
 // 实现一个简单的工具管理器
 class SimpleToolManager {
   private tools: Tool[] = [];
-  
+
   constructor() {
     // 注册工具
     this.registerTools();
   }
-  
+
   registerTools() {
     this.tools = [
       {
@@ -103,21 +92,25 @@ class SimpleToolManager {
       },
     ];
   }
-  
+
   getTools(): Tool[] {
     return this.tools;
   }
-  
-  async executeTool(name: string, toolId: string, args: any): Promise<any> {
+
+  async executeTool(
+    name: string,
+    toolId: string,
+    args: { query?: string; expression?: string; city?: string },
+  ): Promise<string> {
     console.log(`🔧 执行工具: ${name}, 参数:`, args);
-    
+
     switch (name) {
       case 'search':
-        return search(args.query);
+        return search(args.query ?? '');
       case 'calculate':
-        return calculate(args.expression);
+        return calculate(args.expression ?? '');
       case 'getWeather':
-        return getWeather(args.city);
+        return getWeather(args.city ?? '');
       default:
         throw new Error(`未知工具: ${name}`);
     }
@@ -149,19 +142,15 @@ async function main() {
   const eventStream = new SimpleEventStream();
 
   // 创建 FlowBasedAgent
-  const agent = new FlowBasedAgent(
-    client,
-    eventStream,
-    toolManager,
-    {
-      systemPrompt,
-      maxIterations: 3,
-      temperature: 0.7,
-    }
-  );
+  const agent = new FlowBasedAgent(client, eventStream, toolManager, {
+    systemPrompt,
+    maxIterations: 3,
+    temperature: 0.7,
+  });
 
   // 执行代理
-  const query = process.argv[2] || '请同时告诉我北京的天气、21+35的计算结果，以及关于人工智能的一些信息';
+  const query =
+    process.argv[2] || '请同时告诉我北京的天气、21+35的计算结果，以及关于人工智能的一些信息';
   console.log('🧑 用户: ' + query);
 
   try {

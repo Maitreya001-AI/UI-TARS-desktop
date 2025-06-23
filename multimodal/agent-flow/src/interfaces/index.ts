@@ -1,16 +1,11 @@
-/*
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
-
 // 重新导出agent-interface中的所有类型
-export { 
-  Tool, 
-  ToolCallResult, 
+export {
+  Tool,
+  ToolCallResult,
   ChatCompletionMessageToolCall,
   ChatCompletionMessageParam,
   AgentRunOptions,
-  AgentEventStream
+  AgentEventStream,
 } from './agent-interface';
 
 // 重新导出model-provider中的所有类型

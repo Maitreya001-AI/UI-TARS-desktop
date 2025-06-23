@@ -1,14 +1,9 @@
-/*
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import {
   AgentEventStream,
   Tool,
   ChatCompletionMessageParam,
   AgentRunOptions,
-  OpenAI
+  OpenAI,
 } from '../interfaces';
 import { Flow } from '../core/flow';
 import { Node } from '../core/node';
@@ -16,25 +11,12 @@ import { SharedStore } from '../core/shared-store';
 import { ToolFlowAdapter } from './tool-flow-adapter';
 import { AgentNode } from '../nodes/agent-node';
 
-/**
- * FlowBasedAgent - 基于流的代理实现
- *
- * 使用 Pocket Flow 实现代理循环执行逻辑。
- */
 export class FlowBasedAgent {
   private flow: Flow;
   private store: SharedStore;
   private toolFlowAdapter: ToolFlowAdapter;
   private maxIterations: number;
 
-  /**
-   * 构造函数
-   *
-   * @param llmClient LLM 客户端
-   * @param eventStream 事件流处理器
-   * @param toolManager 工具管理器
-   * @param options 选项
-   */
   constructor(
     private llmClient: OpenAI,
     private eventStream: AgentEventStream.Processor,
@@ -57,14 +39,6 @@ export class FlowBasedAgent {
     this.flow = this.buildAgentFlow(systemPrompt, temperature, maxTokens);
   }
 
-  /**
-   * 构建代理流程
-   *
-   * @param systemPrompt 系统提示
-   * @param temperature 温度参数
-   * @param maxTokens 最大 token 数量
-   * @returns 代理流程
-   */
   private buildAgentFlow(systemPrompt: string, temperature: number, maxTokens?: number): Flow {
     const flow = new Flow();
 
@@ -249,12 +223,6 @@ export class FlowBasedAgent {
     return flow;
   }
 
-  /**
-   * 运行代理
-   *
-   * @param options 运行选项
-   * @returns 运行结果
-   */
   async run(options: AgentRunOptions): Promise<any> {
     // 获取工具
     const tools = this.getTools();
@@ -278,11 +246,6 @@ export class FlowBasedAgent {
     return result;
   }
 
-  /**
-   * 获取工具列表
-   *
-   * @returns 工具列表
-   */
   private getTools(): Tool[] {
     // 尝试从工具适配器获取工具
     if (this.toolFlowAdapter && (this.toolFlowAdapter as any).toolManager) {

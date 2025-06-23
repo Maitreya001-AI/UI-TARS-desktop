@@ -1,8 +1,3 @@
-/*
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { Node } from './node';
 import { SharedStore } from './shared-store';
 import { AnyData, ConnectionCondition, ConnectionOptions, FlowExecutionOptions } from './types';

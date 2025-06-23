@@ -1,8 +1,3 @@
-/*
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { Flow, Node, SharedStore, AgentNode, FlowBasedAgent, MockOpenAI as OpenAI } from '../src';
 
 // 创建一个简单的 Agent 流程示例

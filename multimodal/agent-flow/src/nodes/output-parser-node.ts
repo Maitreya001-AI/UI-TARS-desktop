@@ -1,24 +1,8 @@
-/*
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { Node } from '../core/node';
 import { SharedStore } from '../core/shared-store';
 import { AnyData } from '../core/types';
 
-/**
- * OutputParserNode - 用于解析结构化输出的节点
- *
- * 该节点可以将 LLM 输出解析为结构化数据。
- */
 export class OutputParserNode extends Node {
-  /**
-   * 构造函数
-   *
-   * @param id 节点 ID
-   * @param schema 输出模式 (可选)
-   */
   constructor(
     id: string,
     private schema?: any,

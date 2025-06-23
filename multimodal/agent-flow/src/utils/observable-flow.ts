@@ -1,30 +1,14 @@
-/*
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { Flow } from '../core/flow';
 import { SharedStore } from '../core/shared-store';
 import { AnyData } from '../core/types';
 import { FlowLogger } from './logger';
 
-/**
- * 可观察的流程
- *
- * 包装 Flow 类，添加观察和日志记录功能。
- */
 export class ObservableFlow {
   private flow: Flow;
   private logger = FlowLogger.getInstance();
   private id: string;
   private eventListeners: Map<string, Set<(event: string, data: any) => void>> = new Map();
 
-  /**
-   * 构造函数
-   *
-   * @param flow 流程
-   * @param id 流程 ID
-   */
   constructor(flow: Flow, id = `flow_${Date.now()}`) {
     this.flow = flow;
     this.id = id;
@@ -32,13 +16,6 @@ export class ObservableFlow {
     this.logger.info(`创建可观察流程`, undefined, this.id);
   }
 
-  /**
-   * 监听事件
-   *
-   * @param event 事件名称
-   * @param callback 回调函数
-   * @returns 取消监听的函数
-   */
   on(event: string, callback: (event: string, data: any) => void): () => void {
     if (!this.eventListeners.has(event)) {
       this.eventListeners.set(event, new Set());
@@ -58,12 +35,6 @@ export class ObservableFlow {
     };
   }
 
-  /**
-   * 发送事件
-   *
-   * @param event 事件名称
-   * @param data 事件数据
-   */
   emit(event: string, data: any): void {
     this.logger.debug(`事件: ${event}`, undefined, this.id, data);
 
@@ -97,12 +68,6 @@ export class ObservableFlow {
     }
   }
 
-  /**
-   * 执行流程
-   *
-   * @param options 执行选项
-   * @returns 执行结果
-   */
   async execute(options: any = {}): Promise<AnyData> {
     const startTime = Date.now();
     this.logger.info(`开始执行流程`, undefined, this.id, options);

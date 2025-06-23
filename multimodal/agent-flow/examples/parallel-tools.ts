@@ -1,9 +1,12 @@
-/*
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import { Flow, Node, SharedStore, AgentNode, ToolNode, FlowBasedAgent, MockOpenAI as OpenAI } from '../src';
+import {
+  Flow,
+  Node,
+  SharedStore,
+  AgentNode,
+  ToolNode,
+  FlowBasedAgent,
+  MockOpenAI as OpenAI,
+} from '../src';
 
 // 创建一个带有并行工具执行的 Agent 流程示例
 
@@ -208,7 +211,40 @@ async function main() {
     });
 
     // 使用子流程并行执行所有工具
-    const subFlow = toolFlow.clone();
+    const subFlow = new Flow();
+
+    // 重新添加工具节点
+    subFlow.addNode(
+      new ToolNode('search', 'search', tools[0], async (name, args) => search(args.query)),
+    );
+    subFlow.addNode(
+      new ToolNode('calculate', 'calculate', tools[1], async (name, args) =>
+        calculate(args.expression),
+      ),
+    );
+    subFlow.addNode(
+      new ToolNode('weather', 'getWeather', tools[2], async (name, args) => getWeather(args.city)),
+    );
+    subFlow.addNode(
+      new Node('toolResults', async (input, store) => {
+        const toolCalls = store.get('tool_calls') || [];
+        const results = [];
+        for (const toolCall of toolCalls) {
+          const name = toolCall.function.name;
+          const result = store.get(`tool:${name}:result`);
+          if (result) {
+            results.push({
+              tool_call_id: toolCall.id,
+              role: 'tool',
+              name: name,
+              content: result,
+            });
+          }
+        }
+        store.set('tool_results', results);
+        return { tool_results: results, original_input: input };
+      }),
+    );
 
     // 添加输入节点
     subFlow.addNode(

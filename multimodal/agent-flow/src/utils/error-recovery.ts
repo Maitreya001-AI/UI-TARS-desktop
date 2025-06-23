@@ -1,24 +1,9 @@
-/*
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { Node } from '../core/node';
 import { SharedStore } from '../core/shared-store';
 import { AnyData } from '../core/types';
 import { FlowLogger } from './logger';
 
-/**
- * 错误处理和恢复工具
- */
 export class ErrorRecoveryUtils {
-  /**
-   * 使用补偿策略创建节点
-   *
-   * @param originalNode 原始节点
-   * @param fallbackFn 补偿函数
-   * @returns 包装后的节点
-   */
   static withFallback(
     originalNode: Node,
     fallbackFn: (error: Error, input: AnyData, store: SharedStore) => Promise<AnyData> | AnyData,
@@ -41,14 +26,6 @@ export class ErrorRecoveryUtils {
     });
   }
 
-  /**
-   * 使用超时策略创建节点
-   *
-   * @param originalNode 原始节点
-   * @param timeoutMs 超时时间(毫秒)
-   * @param timeoutFn 超时处理函数
-   * @returns 包装后的节点
-   */
   static withTimeout(
     originalNode: Node,
     timeoutMs: number,
@@ -87,15 +64,6 @@ export class ErrorRecoveryUtils {
     });
   }
 
-  /**
-   * 使用重试策略创建节点
-   *
-   * @param originalNode 原始节点
-   * @param maxRetries 最大重试次数
-   * @param delayMs 重试延迟(毫秒)
-   * @param shouldRetry 是否应该重试的条件函数
-   * @returns 包装后的节点
-   */
   static withRetry(
     originalNode: Node,
     maxRetries = 3,

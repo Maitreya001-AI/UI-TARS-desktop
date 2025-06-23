@@ -1,8 +1,3 @@
-/*
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
-
 // 导出核心组件
 export * from './core';
 
@@ -20,6 +15,8 @@ export * from './utils';
 
 // 导出上下文管理工具
 export * from './context';
+
+export * from './interfaces';
 
 // 导出版本信息
 export const VERSION = '0.1.0';

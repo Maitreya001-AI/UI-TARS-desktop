@@ -1,25 +1,7 @@
-/*
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { Tool } from '../interfaces';
 import { Node } from '../core/node';
 
-/**
- * ToolNode - 工具执行节点
- *
- * 该节点用于执行单个工具调用，并返回执行结果。
- */
 export class ToolNode extends Node {
-  /**
-   * 构造函数
-   *
-   * @param id 节点 ID
-   * @param toolName 工具名称
-   * @param tool 工具定义
-   * @param executeTool 工具执行函数
-   */
   constructor(
     id: string,
     private toolName: string,

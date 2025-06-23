@@ -1,25 +1,8 @@
-/*
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { Node } from '../core/node';
 import { SharedStore } from '../core/shared-store';
 import { AnyData } from '../core/types';
 
-/**
- * MemoryNode - 用于处理记忆和检索的节点
- *
- * 该节点可以保存、检索和处理对话历史和其他持久化信息。
- */
 export class MemoryNode extends Node {
-  /**
-   * 构造函数
-   *
-   * @param id 节点 ID
-   * @param memoryKey 记忆在存储中的键
-   * @param maxMemoryItems 最大记忆项数量
-   */
   constructor(
     id: string,
     private memoryKey: string = 'memory',
@@ -44,23 +27,10 @@ export class MemoryNode extends Node {
     });
   }
 
-  /**
-   * 获取记忆
-   *
-   * @param store 共享存储
-   * @returns 记忆数组
-   */
   private getMemory(store: SharedStore): AnyData[] {
     return store.get(this.memoryKey) || [];
   }
 
-  /**
-   * 添加项到记忆中
-   *
-   * @param item 要添加的项
-   * @param store 共享存储
-   * @returns 添加后的记忆
-   */
   private addToMemory(item: AnyData, store: SharedStore): AnyData {
     const memory = this.getMemory(store);
 
@@ -87,13 +57,6 @@ export class MemoryNode extends Node {
     };
   }
 
-  /**
-   * 从记忆中检索
-   *
-   * @param query 查询
-   * @param store 共享存储
-   * @returns 检索结果
-   */
   private retrieveFromMemory(query: string, store: SharedStore): AnyData {
     const memory = this.getMemory(store);
 
@@ -113,12 +76,6 @@ export class MemoryNode extends Node {
     };
   }
 
-  /**
-   * 清空记忆
-   *
-   * @param store 共享存储
-   * @returns 操作结果
-   */
   private clearMemory(store: SharedStore): AnyData {
     const oldSize = this.getMemory(store).length;
     store.set(this.memoryKey, []);
@@ -130,12 +87,6 @@ export class MemoryNode extends Node {
     };
   }
 
-  /**
-   * 总结记忆
-   *
-   * @param store 共享存储
-   * @returns 记忆摘要
-   */
   private summarizeMemory(store: SharedStore): AnyData {
     const memory = this.getMemory(store);
 
